@@ -50,15 +50,28 @@ exports.logout = (req, res) => { //세션에 들어있는걸 없애버린다.
 };
 
 exports.update = async (req, res, next) => {
-  const { user: { email }, body: { nick } } = req;
-  console.log(req.user);
-  console.log(req.body); 
+  const { user: { email, snsId }, body: { nick } } = req;
+  console.log(req.user.email);
+  console.log(req.user.snsId);
+  console.log(req.user.nick);
   try {
-    const exUser = await User.findOne({ where: { email } });
+    let exUser;
+    if (email) {
+      exUser = await User.findOne({ where: { email } });
+    } else if (snsId) {
+      exUser = await User.findOne({ where: { snsId } });
+    }
+    
     if (!exUser) {
       return res.redirect('/login?error=notExist');
     }
-    await User.update({ nick }, { where: { email } });
+
+    if (email) {
+      await User.update({ nick }, { where: { email } });
+    } else if (snsId) {
+      await User.update({ nick }, { where: { snsId } });
+    }
+
     return res.redirect('/');
   } catch (error) {
     console.error(error);
